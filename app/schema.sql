@@ -1,0 +1,16 @@
+DROP TABLE IF EXISTS records;
+DROP TABLE IF EXISTS links;
+
+CREATE TABLE records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    remote_addr TEXT NOT NULL,
+    password TEXT
+);
+
+CREATE TABLE links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    link TEXT UNIQUE NOT NULL,
+    token password NOT NULL
+);
+
