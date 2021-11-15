@@ -13,4 +13,3 @@ CREATE TABLE links (
     link TEXT UNIQUE NOT NULL,
     token password NOT NULL
 );
-

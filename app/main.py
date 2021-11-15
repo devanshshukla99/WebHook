@@ -4,7 +4,6 @@ import string
 from flask import Flask, g, request, render_template
 import sqlite3
 from base64 import b64encode
-import json
 
 DATABASE = "app/database.db"
 
@@ -38,10 +37,6 @@ def get_token(length=16):
     return b64encode(os.urandom(length)).decode('utf-8')
 
 def listener():
-    print(f"Path:{request.path}")
-    print(request.base_url)
-    print(request.remote_addr)
-    print(request.user_agent)
     db = get_db()
     com = "INSERT INTO records(username, remote_addr) VALUES(?,?)"
     db.execute(com, (request.path, request.remote_addr))
@@ -62,7 +57,6 @@ def seeker():
         return data_to_send
     print("AUTH FAILED!")   
     return "{}"
-    
 
 @app.route("/")
 def webhook():
