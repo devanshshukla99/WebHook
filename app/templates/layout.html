@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="/static/logo-32x32.png">
-    <meta name="description" content="Intested in callbacks? Checkout this page!">
-    <meta name="og:description" content="Intested in callbacks? Checkout this page!">
-    <meta property="og:title" content="CallBacks" />
+    <meta name="description" content="Allows to create webhook at request!">
+    <meta name="og:description" content="Allows to create webhook at request!">
+    <meta property="og:title" content="WebHook" />
     <meta property="og:image" content="/static/logo-512x512.png">
     <meta property="og:url" content="https://webhook-connect.herokuapp.com/">
     <meta name="viewport" content="width=960, initial-scale=1.0">
-    <title>CallBack</title>
-    <style>
-        * {
-            margin: 0px;
-            padding: 0px;
-        }
-    </style>
+    <title>{% block title %}{% endblock %}</title>
+    {% block head %}
+    {% endblock %}
 </head>
 <body>
     <header>
         <img src="/static/waves.svg" alt="Waves">
     </header>
+    {% block body %}
+    {% endblock %}
 </body>
 </html>

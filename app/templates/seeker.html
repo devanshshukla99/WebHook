@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/static/logo-32x32.png">
-    <meta name="viewport" content="width=960, initial-scale=1.0">
+{% extends "layout.html" %}
+{% block title %}Seeker{% endblock %}
+{% block head %}
     <style>
         * {
             margin: 0px;
@@ -13,46 +10,65 @@
             display: flex;
             flex-direction: column;
         }
-        table, tr
-        { 
-            margin-left: auto;
-            margin-right: auto;
+        .hook-container {
+            display: inline-flex;
+            padding-left: 2rem;
+            padding-bottom: 0.5rem;
         }
-        table, th, td {
+        .hook-container a {
+            color: rgb(0, 103, 221);
+            text-decoration: none;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 10px;
+        }
+        tr, td {
             border: 1px solid black;
+            margin: 4px;
+            padding: 2.5px;
+        }
+        th {
+            border: 1px solid black;
+            padding: 5px;
         }
         .inner-table, .inner-table tr, .inner-table td{
             border: 0px;
         }
     </style>
-    <title>Seeker</title>
-</head>
-<body>
+{% endblock %}
+{% block body %}
     {% if data %}
+        <div class="hook-container">
+            <h4>Hook: <a href="{{ data[0].get('hook') }}">{{ data[0].get('hook') }}</a></h4>
+        </div>
         <table>
             <tr>
                 {% for key in data[0].keys() %}
-                    <th>{{ key }}</th>
+                    {% if key!="hook" %}
+                        <th>{{ key }}</th>
+                    {% endif %}
                 {% endfor %}
             </tr>
             {% for req in data %}
                 <tr>
                     {% for key, value in req.items() %}
-                        {% if key=="location" %}
-                            <td><table class="inner-table">
-                                <ul>
-                                {% for k, loc in value.items() %}
-                                    <tr><td><li>{{ k }}: {{ loc }}</li></td></tr>
-                                {% endfor %}
-                                </ul>
-                            </table></td>
-                        {% else %}
-                            <td>{{ value }}</td>
+                        {% if key!="hook" %}
+                            {% if key=="location" %}
+                                <td><table class="inner-table">
+                                    <ul>
+                                    {% for k, loc in value.items() %}
+                                        <tr><td><li>{{ k }}: {{ loc }}</li></td></tr>
+                                    {% endfor %}
+                                    </ul>
+                                </table></td>
+                            {% else %}
+                                <td>{{ value }}</td>
+                            {% endif %}
                         {% endif %}
                     {% endfor %}
                 </tr>
             {% endfor %}
         </table>
     {% endif %}
-</body>
-</html>
+{% endblock %}

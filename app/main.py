@@ -3,12 +3,14 @@ import json
 import random
 import string
 import requests
-from flask import Flask, g, request, render_template
+from flask import Flask, g, request, render_template, redirect
 import sqlite3
 from base64 import b64encode
 
+
 DATABASE = "app/database.db"
 QUERIES = 100
+CLEAR_TOKEN = "batman"
 
 app = Flask(__name__, static_folder="static")
 
@@ -151,21 +153,37 @@ def cleanup_past(db):
     return
 
 
-@app.route("/")
+def clear_database(db):
+    cur = db.cursor()
+    com = "DELETE FROM links"
+    cur.execute(com)
+    com = "DELETE FROM records"
+    cur.execute(com)
+    db.commit()
+
+
+@app.route("/", methods=["GET", "POST"])
 def webhook():
     global app
-
-    webhk = "/" + get_random_string()
-    token = get_token()
-    token = token.replace("/", "")
-    # token_link = "/".join([webhk, token])
-
     db = get_db()
-    com = f"INSERT INTO links(link, token) VALUES(?,?)"
-    db.execute(com, (webhk, token))
-    db.commit()
-    cleanup_past(db)
+    if request.method == "POST":
+        if request.form.get("clear_database"):
+            if request.form.get("clear_token") == CLEAR_TOKEN:
+                print("clearing")
+                clear_database(db)
+            return redirect(request.url)
 
-    com = "SELECT COUNT(id) FROM links"
-    db_rows = db.cursor().execute(com).fetchone().get("COUNT(id)", 0)
-    return render_template("index.html", hook=webhk, token=token, db_rows=db_rows, QUERIES=QUERIES)
+    if request.method == "GET":
+        webhk = "/" + get_random_string()
+        token = get_token()
+        token = token.replace("/", "")
+        # token_link = "/".join([webhk, token])
+
+        com = f"INSERT INTO links(link, token) VALUES(?,?)"
+        db.execute(com, (webhk, token))
+        db.commit()
+        cleanup_past(db)
+
+        com = "SELECT COUNT(id) FROM links"
+        db_rows = db.cursor().execute(com).fetchone().get("COUNT(id)", 0)
+        return render_template("index.html", hook=webhk, token=token, db_rows=db_rows, QUERIES=QUERIES)

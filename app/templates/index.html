@@ -1,16 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/static/logo-32x32.png">
-    <meta name="description" content="Allows to create webhook at request!">
-    <meta name="og:description" content="Allows to create webhook at request!">
-    <meta property="og:title" content="WebHook" />
-    <meta property="og:image" content="/static/logo-512x512.png">
-    <meta property="og:url" content="https://webhook-connect.herokuapp.com/">
-    <meta name="viewport" content="width=960, initial-scale=1.0">
-    <title>WebHook</title>
-    <style>
+{% extends "layout.html" %}
+{% block title %}WebHook{% endblock %}
+{% block head %}
+    <style type="text/css">
         * {
             margin: 0px;
             padding: 0px;
@@ -27,9 +18,10 @@
         }
 
         .container {
-            display: block;
+            display: inline-flex;
             margin: 1rem;
             padding-left: 1rem;
+            justify-content: space-between;
         }
 
         .hook-container {
@@ -38,20 +30,23 @@
         }
 
         .db-info-container {
+            display: flex;
             color: blue;
+            flex-direction: column;
+            align-items: flex-end;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+{% block body %}
     <div class="container">
         <div class="hook-container">
             {% if hook %}
                 {% if token %}
                     <div class="hook">
-                        <p>Hook: <a href="{{ hook }}">{{ hook }}</a></p>
+                        <h4>Hook: <a href="{{ hook }}">{{ hook }}</a></h4>
                     </div><br>
                     <div class="hook-token">
-                        <p>Token: <a href="{{ hook }}/{{ token }}">{{ hook }}/{{ token }}</a></p>
+                        <h4>Token: <a href="{{ hook }}/{{ token }}">{{ hook }}/{{ token }}</a></h4>
                     </div><br>
                     <!-- <p>TOKEN = {{ token }}</p> -->
                 {% endif %}
@@ -64,7 +59,10 @@
                 <p style="color: red">DB is full! the oldest hook would be deleted!</p>
                 {% endif %}
             {% endif %}
+            <form method="post" id="clear_db">
+                <input type="password" autocomplete="one-time-code" placeholder="Token" name="clear_token"/>
+                <input type="submit" value="Clear database" name="clear_database"/>
+            </form>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}
