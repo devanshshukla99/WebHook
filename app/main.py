@@ -3,7 +3,6 @@ import json
 import random
 import string
 import requests
-from sys import platform
 from flask import Flask, g, request, render_template
 import sqlite3
 from base64 import b64encode
@@ -11,7 +10,7 @@ from base64 import b64encode
 DATABASE = "app/database.db"
 QUERIES = 100
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 
 
 def init_db():
@@ -80,7 +79,6 @@ def blanket(url):
             print("YO")
             remote_addr = request.headers.get("x-forwarded-for")  # request.remote_addr
             location = geo_locate_ip(remote_addr)
-            print(location)
             user_agent = request.user_agent
             plat = user_agent.platform
             browser = user_agent.browser
@@ -92,14 +90,15 @@ def blanket(url):
                     request.path,
                     remote_addr,
                     location,
-                    platform,
+                    plat,
                     browser,
                     browser_version,
                     user_agent.string,
                 ),
             )
             db.commit()
-    return ("", 204)
+            return render_template("hook.html")
+    return ("", 200)
 
 
 @app.route("/<hook>/<token>", methods=["GET"])
@@ -109,7 +108,6 @@ def cover(hook, token):
 
     com = "SELECT * FROM links where link=?"
     auth = cur.execute(com, ("/" + hook,)).fetchone()
-    print(auth)
     if auth:
         if auth.get("token") == token:
             com = "SELECT * FROM records where hook=?"
@@ -149,7 +147,6 @@ def cleanup_past(db):
     com = "DELETE FROM records WHERE hook=?"
     if yeeted_links:
         for link in yeeted_links[0]:
-            print(link)
             cur.execute(com, (link,))
     return
 
@@ -171,6 +168,4 @@ def webhook():
 
     com = "SELECT COUNT(id) FROM links"
     db_rows = db.cursor().execute(com).fetchone().get("COUNT(id)", 0)
-    return render_template(
-        "hook.html", hook=webhk, token=token, db_rows=db_rows, QUERIES=QUERIES
-    )
+    return render_template("index.html", hook=webhk, token=token, db_rows=db_rows, QUERIES=QUERIES)
