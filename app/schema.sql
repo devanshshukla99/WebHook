@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS links;
 
 CREATE TABLE records (
     hook TEXT NOT NULL,
-    remote_addr TEXT NOT NULL,
+    remote_addr TEXT,
     location TEXT,
     platform TEXT NOT NULL,
     browser TEXT NOT NULL,
