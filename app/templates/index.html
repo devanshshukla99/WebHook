@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/logo-32x32.png">
+    <meta name="description" content="Allows to create webhook at request!">
+    <meta name="og:description" content="Allows to create webhook at request!">
+    <meta property="og:title" content="WebHook" />
+    <meta property="og:image" content="/static/logo-512x512.png">
+    <meta property="og:url" content="https://webhook-connect.herokuapp.com/">
+    <meta name="viewport" content="width=960, initial-scale=1.0">
+    <title>WebHook</title>
+    <style>
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        body a {
+            color: rgb(0, 103, 221);
+            text-decoration: none;
+        }
+
+        .container {
+            display: block;
+            margin: 1rem;
+            padding-left: 1rem;
+        }
+
+        .hook-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .db-info-container {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hook-container">
+            {% if hook %}
+                {% if token %}
+                    <div class="hook">
+                        <p>Hook: <a href="{{ hook }}">{{ hook }}</a></p>
+                    </div><br>
+                    <div class="hook-token">
+                        <p>Token: <a href="{{ hook }}/{{ token }}">{{ hook }}/{{ token }}</a></p>
+                    </div><br>
+                    <!-- <p>TOKEN = {{ token }}</p> -->
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="db-info-container">
+            {% if db_rows %}
+                <p>DB has {{ db_rows }} / {{ QUERIES }} hooks</p>
+                {% if db_rows==QUERIES %}
+                <p style="color: red">DB is full! the oldest hook would be deleted!</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
