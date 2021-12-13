@@ -77,7 +77,7 @@ def blanket(url):
     for u in hooks:
         if u.get("link")[1:] == url:
             print("YO")
-            remote_addr = request.remote_addr
+            remote_addr = request.get("x-forwarded-for")  # request.remote_addr
             location = geo_locate_ip(remote_addr)
             print(location)
             user_agent = request.user_agent
