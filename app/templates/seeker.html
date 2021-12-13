@@ -9,19 +9,20 @@
             margin: 0px;
             padding: 0px;
         }
-
         body {
             display: flex;
             flex-direction: column;
         }
-
         table, tr
         { 
             margin-left: auto;
             margin-right: auto;
         }
         table, th, td {
-            border:1px solid black;
+            border: 1px solid black;
+        }
+        .inner-table, .inner-table tr, .inner-table td{
+            border: 0px;
         }
     </style>
     <title>Seeker</title>
@@ -37,7 +38,17 @@
             {% for req in data %}
                 <tr>
                     {% for key, value in req.items() %}
-                        <td>{{ value }}</td>
+                        {% if key=="location" %}
+                            <td><table class="inner-table">
+                                <ul>
+                                {% for k, loc in value.items() %}
+                                    <tr><td><li>{{ k }}: {{ loc }}</li></td></tr>
+                                {% endfor %}
+                                </ul>
+                            </table></td>
+                        {% else %}
+                            <td>{{ value }}</td>
+                        {% endif %}
                     {% endfor %}
                 </tr>
             {% endfor %}

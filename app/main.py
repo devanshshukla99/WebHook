@@ -58,13 +58,14 @@ def geo_locate_ip(addr):
         return None
     url = f"https://ipinfo.io/{addr}/json"
     headers = {
-            "accept": "json",
-            "pragma": "no-cache",
-            "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"
-        }
+        "accept": "json",
+        "pragma": "no-cache",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36",
+    }
     r = requests.get(url, headers=headers)
-    if r.status_code==200:
+    if r.status_code == 200:
         return r.content
+    print(f"Exception occurred: {r.content}")
     return None
 
 
@@ -100,6 +101,7 @@ def blanket(url):
             db.commit()
     return ("", 204)
 
+
 @app.route("/<hook>/<token>", methods=["GET"])
 def cover(hook, token):
     db = get_db()
@@ -112,7 +114,6 @@ def cover(hook, token):
         if auth.get("token") == token:
             com = "SELECT * FROM records where hook=?"
             data = cur.execute(com, ("/" + hook,)).fetchall()
-            print(data)
             try:
                 for req in data:
                     req["location"] = json.loads(req.get("location"))
@@ -126,7 +127,7 @@ def cover(hook, token):
     return ("", 404)
 
 
-@app.route("/site-map")
+# @app.route("/site-map")
 def site_map():
     rules = []
     urls = []
