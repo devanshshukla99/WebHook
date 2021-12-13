@@ -1,6 +1,9 @@
 import os
+import json
 import random
 import string
+import requests
+from sys import platform
 from flask import Flask, g, request, render_template
 import sqlite3
 from base64 import b64encode
@@ -20,11 +23,18 @@ def init_db():
     return
 
 
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
+
 def get_db():
     db = getattr(g, "db", None)
     if db is None:
         db = g.db = sqlite3.connect(DATABASE)
-        g.db.row_factory = sqlite3.Row
+        g.db.row_factory = dict_factory  # sqlite3.Row
     return db
 
 
@@ -43,69 +53,104 @@ def get_token(length=16):
     return b64encode(os.urandom(length)).decode("utf-8")
 
 
+def geo_locate_ip(addr):
+    if not addr:
+        return None
+    url = f"https://ipinfo.io/{addr}/json"
+    headers = {
+            "accept": "json",
+            "pragma": "no-cache",
+            "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"
+        }
+    r = requests.get(url, headers=headers)
+    if r.status_code==200:
+        return r.content
+    return None
+
+
 @app.route("/<url>", methods=["GET"])
 def blanket(url):
     db = get_db()
-    com = "INSERT INTO records(username, remote_addr) VALUES(?,?)"
-    db.execute(com, (request.path, request.remote_addr))
-    db.commit()
+    cur = db.cursor()
+    com = "SELECT link FROM links where link=?"
+    hooks = cur.execute(com, ("/" + url,)).fetchall()
+    for u in hooks:
+        if u.get("link")[1:] == url:
+            print("YO")
+            remote_addr = request.remote_addr
+            location = geo_locate_ip(remote_addr)
+            print(location)
+            user_agent = request.user_agent
+            plat = user_agent.platform
+            browser = user_agent.browser
+            browser_version = user_agent.version
+            com = "INSERT INTO records(hook, remote_addr, location, platform, browser, browser_version, user_agent) VALUES(?,?,?,?,?,?,?)"
+            cur.execute(
+                com,
+                (
+                    request.path,
+                    remote_addr,
+                    location,
+                    platform,
+                    browser,
+                    browser_version,
+                    user_agent.string,
+                ),
+            )
+            db.commit()
     return ("", 204)
-
 
 @app.route("/<hook>/<token>", methods=["GET"])
 def cover(hook, token):
-    cur = get_db().cursor()
+    db = get_db()
+    cur = db.cursor()
+
     com = "SELECT * FROM links where link=?"
     auth = cur.execute(com, ("/" + hook,)).fetchone()
     print(auth)
     if auth:
-        if auth[2] == token:
-            print("YES")
-            com = "SELECT * FROM records where username=?"
+        if auth.get("token") == token:
+            com = "SELECT * FROM records where hook=?"
             data = cur.execute(com, ("/" + hook,)).fetchall()
-            data_to_send = {x[0]: {"url": x[1], "remote_addr": x[2]} for x in data}
-            return data_to_send
+            print(data)
+            try:
+                for req in data:
+                    req["location"] = json.loads(req.get("location"))
+            except Exception as e:
+                print(f"Exception occured: {e}")
+            # data_to_send = {x[0]: {"url": x[1], "remote_addr": x[2]} for x in data}
+            # data_to_send = [[x for x in y] for y in data]
+            return render_template("seeker.html", data=data)
+            # return ("", 200)
     print("AUTH FAILED!")
     return ("", 404)
-
-
-def listener():
-    db = get_db()
-    com = "INSERT INTO records(username, remote_addr) VALUES(?,?)"
-    db.execute(com, (request.path, request.remote_addr))
-    db.commit()
-    return ("", 200)  # "Hey there! You found me"
-
-
-def seeker():
-    url = request.path
-    print(f"URL:{url}")
-    _, hook, token = url.split("/")
-    cur = get_db().cursor()
-    com = "SELECT * FROM links where link=?"
-    auth = cur.execute(com, ("/" + hook,)).fetchone()
-    if auth[2] == token:
-        com = "SELECT * FROM records where username=?"
-        data = cur.execute(com, ("/" + hook,)).fetchall()
-        data_to_send = {x[0]: {"url": x[1], "remote_addr": x[2]} for x in data}
-        return data_to_send
-    print("AUTH FAILED!")
-    return "{}"
 
 
 @app.route("/site-map")
 def site_map():
     rules = []
     urls = []
-    print(app.url_map)
     for rule in app.url_map.iter_rules():
-        # Filter out rules we can't navigate to in a browser
-        # and rules that require parameters
         if "GET" in rule.methods:
-            # url = url_for(rule.endpoint, **(rule.defaults or {}))
             rules.append(str(rule))
             urls.append(rule.endpoint)
     return {"rules": rules, "urls": urls}
+
+
+def cleanup_past(db):
+    cur = db.cursor()
+    com = f"""SELECT link FROM links WHERE id NOT IN (
+            SELECT id FROM links ORDER BY id DESC LIMIT {QUERIES})"""
+    yeeted_links = cur.execute(com).fetchall()
+    com = f"""DELETE FROM links WHERE id NOT IN (
+                SELECT id FROM links ORDER BY id DESC LIMIT {QUERIES})"""
+    cur.execute(com).fetchall()
+    com = "DELETE FROM records WHERE hook=?"
+    if yeeted_links:
+        for link in yeeted_links[0]:
+            print(link)
+            cur.execute(com, (link,))
+    return
 
 
 @app.route("/")
@@ -115,24 +160,16 @@ def webhook():
     webhk = "/" + get_random_string()
     token = get_token()
     token = token.replace("/", "")
-    token_link = "/".join([webhk, token])
-
-    # app.route(webhk, methods=["GET"])(listener)
-    # app.route(token_link, methods=["GET"])(seeker)
+    # token_link = "/".join([webhk, token])
 
     db = get_db()
     com = f"INSERT INTO links(link, token) VALUES(?,?)"
     db.execute(com, (webhk, token))
     db.commit()
-
-    com = f"""DELETE FROM links WHERE id NOT IN (
-                SELECT id FROM links ORDER BY id DESC LIMIT {QUERIES})"""
-    yeeted_links = db.cursor().execute(com).fetchall()
+    cleanup_past(db)
 
     com = "SELECT COUNT(id) FROM links"
-    db_rows = db.cursor().execute(com).fetchone()[0]
-    print(db_rows)
-    db.commit()
+    db_rows = db.cursor().execute(com).fetchone().get("COUNT(id)", 0)
     return render_template(
         "hook.html", hook=webhk, token=token, db_rows=db_rows, QUERIES=QUERIES
     )
