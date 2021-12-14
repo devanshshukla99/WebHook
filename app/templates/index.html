@@ -40,16 +40,13 @@
 {% block body %}
     <div class="container">
         <div class="hook-container">
-            {% if hook %}
-                {% if token %}
-                    <div class="hook">
-                        <h4>Hook: <a href="{{ hook }}">{{ hook }}</a></h4>
-                    </div><br>
-                    <div class="hook-token">
-                        <h4>Token: <a href="{{ hook }}/{{ token }}">{{ hook }}/{{ token }}</a></h4>
-                    </div><br>
-                    <!-- <p>TOKEN = {{ token }}</p> -->
-                {% endif %}
+            {% if data %}
+                <div class="hook">
+                    <h4>Hook: <a href="{{ data.get('hook') }}">{{ data.get('hook') }}</a></h4>
+                </div><br>
+                <div class="hook-token">
+                    <h4>Token: <a href="{{ data.get('hook') }}/{{ data.get('token') }}">{{ data.get('hook') }}/{{ data.get('token') }}</a></h4>
+                </div><br>
             {% endif %}
         </div>
         <div class="db-info-container">

@@ -39,6 +39,15 @@ def get_db():
     return db
 
 
+def clear_database(db):
+    cur = db.cursor()
+    com = "DELETE FROM links"
+    cur.execute(com)
+    com = "DELETE FROM records"
+    cur.execute(com)
+    db.commit()
+
+
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, "db", None)
@@ -50,7 +59,7 @@ def get_random_string(length=20):
     return "".join([random.choice(string.ascii_lowercase) for x in range(0, length)])
 
 
-def get_token(length=16):
+def get_token(length=18):
     return b64encode(os.urandom(length)).decode("utf-8")
 
 
@@ -105,6 +114,8 @@ def blanket(url):
 
 @app.route("/<hook>/<token>", methods=["GET"])
 def cover(hook, token):
+    content_type = request.headers.get("Content-Type")
+
     db = get_db()
     cur = db.cursor()
 
@@ -119,10 +130,10 @@ def cover(hook, token):
                     req["location"] = json.loads(req.get("location"))
             except Exception as e:
                 print(f"Exception occured: {e}")
-            # data_to_send = {x[0]: {"url": x[1], "remote_addr": x[2]} for x in data}
-            # data_to_send = [[x for x in y] for y in data]
-            return render_template("seeker.html", data=data)
-            # return ("", 200)
+            if data:
+                if content_type == "application/json":
+                    return {x: data[x] for x in range(0, len(data))}
+                return render_template("seeker.html", data=data)
     print("AUTH FAILED!")
     return ("", 404)
 
@@ -153,18 +164,10 @@ def cleanup_past(db):
     return
 
 
-def clear_database(db):
-    cur = db.cursor()
-    com = "DELETE FROM links"
-    cur.execute(com)
-    com = "DELETE FROM records"
-    cur.execute(com)
-    db.commit()
-
-
 @app.route("/", methods=["GET", "POST"])
 def webhook():
     global app
+    content_type = request.headers.get("Content-Type")
     db = get_db()
     if request.method == "POST":
         if request.form.get("clear_database"):
@@ -174,16 +177,19 @@ def webhook():
             return redirect(request.url)
 
     if request.method == "GET":
-        webhk = "/" + get_random_string()
+        hook = "/" + get_random_string()
         token = get_token()
         token = token.replace("/", "")
-        # token_link = "/".join([webhk, token])
+        data = {"hook": hook, "token": token}
 
         com = f"INSERT INTO links(link, token) VALUES(?,?)"
-        db.execute(com, (webhk, token))
+        db.execute(com, (hook, token))
         db.commit()
         cleanup_past(db)
 
         com = "SELECT COUNT(id) FROM links"
         db_rows = db.cursor().execute(com).fetchone().get("COUNT(id)", 0)
-        return render_template("index.html", hook=webhk, token=token, db_rows=db_rows, QUERIES=QUERIES)
+        if content_type == "application/json":
+            print("yo-json")
+            return json.dumps(data)
+        return render_template("index.html", data=data, db_rows=db_rows, QUERIES=QUERIES)

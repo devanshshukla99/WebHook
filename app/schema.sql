@@ -5,10 +5,10 @@ CREATE TABLE records (
     hook TEXT NOT NULL,
     remote_addr TEXT,
     location TEXT,
-    platform TEXT NOT NULL,
-    browser TEXT NOT NULL,
-    browser_version TEXT NOT NULL,
-    user_agent TEXT NOT NULL
+    platform TEXT,
+    browser TEXT,
+    browser_version TEXT,
+    user_agent TEXT
 );
 
 CREATE TABLE links (
