@@ -111,8 +111,10 @@ def blanket(url):
                 ),
             )
             db.commit()
-            # return render_template("hook.html")
-            return send_file("static/waves.svg", mimetype='image/svg+xml')
+            # best_match = request.accept_mimetypes.best_match(["text/html", "image/*"])
+            # if best_match == "text/html":
+                # return render_template("hook.html")
+            return send_file("static/1x1.png", mimetype="image/png")
     return ("", 200)
 
 
