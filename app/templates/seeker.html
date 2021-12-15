@@ -28,9 +28,13 @@
             margin: 4px;
             padding: 2.5px;
         }
+        td {
+            text-align: center;
+        }
         th {
             border: 1px solid black;
             padding: 5px;
+            text-align: center;
         }
         .inner-table, .inner-table tr, .inner-table td{
             border: 0px;
@@ -44,6 +48,7 @@
         </div>
         <table>
             <tr>
+                <th>SNo.</th>
                 {% for key in data[0].keys() %}
                     {% if key!="hook" %}
                         <th>{{ key }}</th>
@@ -52,16 +57,11 @@
             </tr>
             {% for req in data %}
                 <tr>
+                    <td>{{ loop.index }}</td>
                     {% for key, value in req.items() %}
                         {% if key!="hook" %}
-                            {% if key=="location" %}
-                                <td><table class="inner-table">
-                                    <ul>
-                                    {% for k, loc in value.items() %}
-                                        <tr><td><li>{{ k }}: {{ loc }}</li></td></tr>
-                                    {% endfor %}
-                                    </ul>
-                                </table></td>
+                            {% if key=="remote_addr" %}
+                                <td>{{ value }} <a href="https://who.is/whois-ip/ip-address/{{ value }}">(whois)</a></td>
                             {% else %}
                                 <td>{{ value }}</td>
                             {% endif %}

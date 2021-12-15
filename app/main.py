@@ -3,7 +3,8 @@ import json
 import random
 import string
 import requests
-from flask import Flask, g, request, render_template, redirect
+from datetime import datetime, timezone
+from flask import Flask, g, request, render_template, redirect, send_file
 import sqlite3
 from base64 import b64encode
 
@@ -72,6 +73,7 @@ def geo_locate_ip(addr):
         "pragma": "no-cache",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36",
     }
+    print("Fetching IP details")
     r = requests.get(url, headers=headers)
     if r.status_code == 200:
         return r.content
@@ -89,18 +91,19 @@ def blanket(url):
         if u.get("link")[1:] == url:
             print("YO")
             remote_addr = request.headers.get("x-forwarded-for")  # request.remote_addr
-            location = geo_locate_ip(remote_addr)
+            req_date = datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S (%Z)")
+            location = None # json.dumps({'ip': remote_addr, })  # geo_locate_ip(remote_addr)
             user_agent = request.user_agent
             plat = user_agent.platform
             browser = user_agent.browser
             browser_version = user_agent.version
-            com = "INSERT INTO records(hook, remote_addr, location, platform, browser, browser_version, user_agent) VALUES(?,?,?,?,?,?,?)"
+            com = "INSERT INTO records(hook, req_date, remote_addr, platform, browser, browser_version, user_agent) VALUES(?,?,?,?,?,?,?)"
             cur.execute(
                 com,
                 (
                     request.path,
+                    req_date,
                     remote_addr,
-                    location,
                     plat,
                     browser,
                     browser_version,
@@ -108,7 +111,8 @@ def blanket(url):
                 ),
             )
             db.commit()
-            return render_template("hook.html")
+            # return render_template("hook.html")
+            return send_file("static/waves.svg", mimetype='image/svg+xml')
     return ("", 200)
 
 
@@ -125,11 +129,8 @@ def cover(hook, token):
         if auth.get("token") == token:
             com = "SELECT * FROM records where hook=?"
             data = cur.execute(com, ("/" + hook,)).fetchall()
-            try:
-                for req in data:
-                    req["location"] = json.loads(req.get("location"))
-            except Exception as e:
-                print(f"Exception occured: {e}")
+            # for req in data:
+            #     req["location"] = json.loads(req.get("location"))
             if data:
                 if content_type == "application/json":
                     return {x: data[x] for x in range(0, len(data))}

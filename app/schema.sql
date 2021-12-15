@@ -3,8 +3,8 @@ DROP TABLE IF EXISTS links;
 
 CREATE TABLE records (
     hook TEXT NOT NULL,
+    req_date date,
     remote_addr TEXT,
-    location TEXT,
     platform TEXT,
     browser TEXT,
     browser_version TEXT,
