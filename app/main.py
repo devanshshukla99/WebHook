@@ -89,7 +89,7 @@ def blanket(url):
     hooks = cur.execute(com, ("/" + url,)).fetchall()
     for u in hooks:
         if u.get("link")[1:] == url:
-            print("YO")
+            headers = json.dumps(dict(request.headers))
             remote_addr = request.headers.get("x-forwarded-for")  # request.remote_addr
             req_date = datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S (%Z)")
             location = None # json.dumps({'ip': remote_addr, })  # geo_locate_ip(remote_addr)
@@ -97,7 +97,7 @@ def blanket(url):
             plat = user_agent.platform
             browser = user_agent.browser
             browser_version = user_agent.version
-            com = "INSERT INTO records(hook, req_date, remote_addr, platform, browser, browser_version, user_agent) VALUES(?,?,?,?,?,?,?)"
+            com = "INSERT INTO records(hook, req_date, remote_addr, platform, browser, browser_version, user_agent, headers) VALUES(?,?,?,?,?,?,?,?)"
             cur.execute(
                 com,
                 (
@@ -108,6 +108,7 @@ def blanket(url):
                     browser,
                     browser_version,
                     user_agent.string,
+                    headers
                 ),
             )
             db.commit()
@@ -131,12 +132,11 @@ def cover(hook, token):
         if auth.get("token") == token:
             com = "SELECT * FROM records where hook=?"
             data = cur.execute(com, ("/" + hook,)).fetchall()
-            # for req in data:
-            #     req["location"] = json.loads(req.get("location"))
             if data:
                 if content_type == "application/json":
                     return {x: data[x] for x in range(0, len(data))}
-                return render_template("seeker.html", data=data)
+                headers = [json.loads(x.pop("headers")) for x in data]
+                return render_template("seeker.html", data=data, headers=headers)
     print("AUTH FAILED!")
     return ("", 404)
 

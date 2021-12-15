@@ -8,7 +8,8 @@ CREATE TABLE records (
     platform TEXT,
     browser TEXT,
     browser_version TEXT,
-    user_agent TEXT
+    user_agent TEXT,
+    headers TEXT
 );
 
 CREATE TABLE links (
