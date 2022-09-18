@@ -1,15 +1,7 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
 {% block title %}Seeker{% endblock %}
 {% block head %}
     <style>
-        * {
-            margin: 0px;
-            padding: 0px;
-        }
-        body {
-            display: flex;
-            flex-direction: column;
-        }
         .hook-container {
             display: inline-flex;
             padding-left: 2rem;
@@ -52,14 +44,14 @@
             background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
         }
         .modal-content {
-            background-color: #fefefe;
+            background-color: rgb(52, 52, 52);
             margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
         }
         .modal-content-table tr:nth-child(even) {
-            background-color: rgb(226, 226, 226);
+            background-color: rgb(52, 52, 52);
         }
         .modal-close {
             color: #aaa;
@@ -90,7 +82,7 @@
         <div class="hook-container">
             <h4>Hook: <a href="{{ data[0].get('hook') }}">{{ data[0].get('hook') }}</a></h4>
         </div>
-        <table class="hook-info">
+        <table class="hook-info table table-striped table-hover table-dark">
             <tr>
                 <th>SNo.</th>
                 {% for key in data[0].keys() %}
@@ -112,7 +104,7 @@
                             {% endif %}
                         {% endif %}
                     {% endfor %}
-                    <td><input type="button" id="button-{{ loop.index }}" value="Show" onclick="ShowHeaders({{ loop.index }})"></td>
+                    <td><input type="button" class="btn btn-primary" id="button-{{ loop.index }}" value="Show" onclick="ShowHeaders({{ loop.index }})"></td>
                 </tr>
             {% endfor %}
         </table>
@@ -120,7 +112,7 @@
             <div class="modal headers-{{ loop.index }}">
                 <div class="modal-content">
                     <span class="modal-close modal-close-{{ loop.index }}">&times;</span>
-                    <table class="modal-content-table">
+                    <table class="modal-content-table table table-striped table-hover table-dark">
                         {% for k1, v1 in req.items() %}
                             <tr>
                                 <th>{{ k1 }}</th> <td>{{ v1 }}</td>

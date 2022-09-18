@@ -1,19 +1,23 @@
 import os
 import json
-import random
 import string
+import random
+import sqlite3
 import requests
+from hashlib import sha512
+from base64 import b64encode
+from rich.console import Console
 from datetime import datetime, timezone
 from flask import Flask, g, request, render_template, redirect, send_file
-import sqlite3
-from base64 import b64encode
 
 
 DATABASE = "app/database.db"
 QUERIES = 100
-CLEAR_TOKEN = "batman"
+CLEAR_TOKEN = "5e325d89a5fceb1ba257f50d7e7c1a807ae8b19756e252c326c44e84e357749d3e780b7db1fb32ec029e7850d3b0bba032a33611d2a54a1db8097c81f2b23814"
+ADMIN_TOKEN = "9ad0d01d1766bb60025ba3403e851d1493a1ce2f14bdcf14d198f4a49e083f4547a6e5f9908444aad02d8d2383fbc74af021c7ee797ea13254c6603de76291b8"
 
 app = Flask(__name__, static_folder="static")
+console = Console()
 
 
 def init_db():
@@ -92,7 +96,7 @@ def blanket(url):
             headers = json.dumps(dict(request.headers))
             remote_addr = request.headers.get("x-forwarded-for")  # request.remote_addr
             req_date = datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S (%Z)")
-            location = None # json.dumps({'ip': remote_addr, })  # geo_locate_ip(remote_addr)
+            location = None  # json.dumps({'ip': remote_addr, })  # geo_locate_ip(remote_addr)
             user_agent = request.user_agent
             plat = user_agent.platform
             browser = user_agent.browser
@@ -108,13 +112,13 @@ def blanket(url):
                     browser,
                     browser_version,
                     user_agent.string,
-                    headers
+                    headers,
                 ),
             )
             db.commit()
             # best_match = request.accept_mimetypes.best_match(["text/html", "image/*"])
             # if best_match == "text/html":
-                # return render_template("hook.html")
+            # return render_template("hook.html")
             return send_file("static/1x1.png", mimetype="image/png")
     return ("", 200)
 
@@ -168,18 +172,29 @@ def cleanup_past(db):
 
 
 @app.route("/", methods=["GET", "POST"])
-def webhook():
+def main():
     global app
     content_type = request.headers.get("Content-Type")
     db = get_db()
     if request.method == "POST":
-        if request.form.get("clear_database"):
-            if request.form.get("clear_token") == CLEAR_TOKEN:
+        console.log("request method: POST")
+        if request.form.get("show_database"):
+            if sha512(request.form.get("admin_token").encode()).hexdigest() == CLEAR_TOKEN:
+                console.log(f"Show database: {request.form.get('show_database')}")
+                console.log(f"Admin Token: {request.form.get('admin_token')}")
+                com = "SELECT * FROM links"
+                data = db.cursor().execute(com).fetchall()
+                return render_template("database.html", data=data)
+            return redirect(request.url)
+
+        elif request.form.get("clear_database"):
+            console.log(f"Clear database: {request.form.get('clear_database')}")
+            console.log(f"clear Token: {request.form.get('clear_token')}")
+            if sha512(request.form.get("clear_token").encode()).hexdigest() == CLEAR_TOKEN:
                 print("clearing")
                 clear_database(db)
             return redirect(request.url)
 
-    if request.method == "GET":
         hook = "/" + get_random_string()
         token = get_token()
         token = token.replace("/", "")
@@ -196,3 +211,8 @@ def webhook():
             print("yo-json")
             return json.dumps(data)
         return render_template("index.html", data=data, db_rows=db_rows, QUERIES=QUERIES)
+
+    if request.method == "GET":
+        com = "SELECT COUNT(id) FROM links"
+        db_rows = db.cursor().execute(com).fetchone().get("COUNT(id)", 0)
+        return render_template("index.html", db_rows=db_rows, QUERIES=QUERIES)

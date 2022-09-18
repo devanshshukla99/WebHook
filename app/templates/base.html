@@ -9,13 +9,16 @@
     <meta property="og:image" content="/static/logo-512x512.png">
     <meta property="og:url" content="https://webhook-connect.herokuapp.com/">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="/static/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3">
     <title>{% block title %}{% endblock %}</title>
     {% block head %}
     {% endblock %}
 </head>
-<body>
+<body class="bg-dark">
     <header>
-        <img src="/static/waves.svg" alt="Waves">
+        <!-- <img src="/static/waves.svg" alt="Waves"> -->
+        <h1>WebHook</h1>
     </header>
     {% block body %}
     {% endblock %}

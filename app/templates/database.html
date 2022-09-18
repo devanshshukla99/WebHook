@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}WebHook{% endblock %}
+{% block head %}{% endblock %}
+{% block body %}
+    {% if data %}
+        <div class="container">
+            <table class="table table-striped table-hover table-dark">
+                <th>SNo</th>
+                <th>Hook</th>
+                <th>Token</th>
+                {% for hooktoken in data %}
+                <tr>
+                    <!-- {% for x in hooktoken.values() %}
+                    <td>{{ x }}</td>
+                    {% endfor %} -->
+                    <td>{{ hooktoken.get("id") }}</td>
+                    <td><a href="{{ hooktoken.get("link") }}">{{ hooktoken.get("link") }}</a></td>
+                    <td><a href="{{ hooktoken.get("link") }}/{{ hooktoken.get("token") }}">{{ hooktoken.get("link") }}/{{ hooktoken.get("token") }}</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}
