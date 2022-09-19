@@ -179,7 +179,7 @@ def main():
     if request.method == "POST":
         console.log("request method: POST")
         if request.form.get("show_database"):
-            if sha512(request.form.get("admin_token").encode()).hexdigest() == CLEAR_TOKEN:
+            if sha512(request.form.get("admin_token").encode()).hexdigest() == ADMIN_TOKEN:
                 console.log(f"Show database: {request.form.get('show_database')}")
                 console.log(f"Admin Token: {request.form.get('admin_token')}")
                 com = "SELECT * FROM links"

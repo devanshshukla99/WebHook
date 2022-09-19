@@ -11,15 +11,26 @@ body {
     flex-direction: column;
 }
 
+header a {
+    text-decoration: none;
+    color: var(--color)
+}
+
+header a:hover {
+    text-decoration: none;
+    color: rgb(241, 255, 255);
+}
+
 header {
     margin: 1rem;
     padding: 1rem;
 }
 
 .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    gap: 50px 100px;
+    /* justify-content: center;
+    align-items: center; */
 }
 
 tr {
@@ -28,4 +39,15 @@ tr {
 
 td {
     padding: 5px;
+}
+
+.hook-container {
+    display: inline-flex;
+    padding-left: 2rem;
+    padding-bottom: 0.5rem;
+}
+
+.hook-container a {
+    color: rgb(0, 103, 221);
+    text-decoration: none;
 }
